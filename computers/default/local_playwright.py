@@ -16,25 +16,46 @@ class LocalPlaywrightBrowser(BasePlaywrightComputer):
             "--disable-extensions",
             "--disable-file-system",
         ]
-        browser = self._playwright.chromium.launch(
-            chromium_sandbox=True,
-            headless=self.headless,
-            args=launch_args,
-            env={"DISPLAY": ":0"},
-        )
+        
+        try:
+            browser = self._playwright.chromium.launch(
+                chromium_sandbox=True,
+                headless=self.headless,
+                args=launch_args,
+                env={"DISPLAY": ":0"},
+            )
+        except Exception as e:
+            print(f"Failed to launch browser: {e}")
+            print("This might be due to missing dependencies. Try running: playwright install chromium")
+            raise
 
-        context = browser.new_context()
+        try:
+            context = browser.new_context()
 
-        # Add event listeners for page creation and closure
-        context.on("page", self._handle_new_page)
+            # Add event listeners for page creation and closure
+            context.on("page", self._handle_new_page)
 
-        page = context.new_page()
-        page.set_viewport_size({"width": width, "height": height})
-        page.on("close", self._handle_page_close)
+            page = context.new_page()
+            page.set_viewport_size({"width": width, "height": height})
+            page.on("close", self._handle_page_close)
 
-        page.goto("https://bing.com")
+            # Try to navigate to initial page with retry
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    page.goto("https://bing.com", wait_until="domcontentloaded", timeout=10000)
+                    break
+                except Exception as nav_error:
+                    if attempt == max_retries - 1:
+                        print(f"Failed to navigate to initial page after {max_retries} attempts: {nav_error}")
+                        # Continue without initial navigation rather than failing completely
+                    else:
+                        print(f"Navigation attempt {attempt + 1} failed, retrying...")
 
-        return browser, page
+            return browser, page
+        except Exception as e:
+            browser.close()
+            raise
 
     def _handle_new_page(self, page: Page):
         """Handle the creation of a new page."""
