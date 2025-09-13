@@ -63,13 +63,13 @@ class BasePlaywrightComputer:
 
         # Set up network interception to flag URLs matching domains in BLOCKED_DOMAINS
         def handle_route(route, request):
-
             url = request.url
-            if check_blocklisted_url(url):
-                print(f"Flagging blocked domain: {url}")
-                route.abort()
-            else:
+            try:
+                check_blocklisted_url(url)
                 route.continue_()
+            except ValueError as e:
+                print(f"Blocked domain access: {e}")
+                route.abort()
 
         self._page.route("**/*", handle_route)
 
@@ -138,9 +138,26 @@ class BasePlaywrightComputer:
     # --- Extra browser-oriented actions ---
     def goto(self, url: str) -> None:
         try:
-            return self._page.goto(url)
+            if not self._page:
+                raise ValueError("No active page available. Browser may have been closed.")
+            return self._page.goto(url, wait_until="domcontentloaded", timeout=30000)
         except Exception as e:
             print(f"Error navigating to {url}: {e}")
+            # Try to recover by ensuring we have a valid page
+            if not self._page or self._page.is_closed():
+                try:
+                    if self._browser and self._browser.contexts:
+                        context = self._browser.contexts[0]
+                        if context.pages:
+                            self._page = context.pages[-1]
+                        else:
+                            self._page = context.new_page()
+                            width, height = self.get_dimensions()
+                            self._page.set_viewport_size({"width": width, "height": height})
+                    return self._page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                except Exception as recovery_error:
+                    print(f"Failed to recover and navigate to {url}: {recovery_error}")
+                    raise
 
     def back(self) -> None:
         return self._page.go_back()

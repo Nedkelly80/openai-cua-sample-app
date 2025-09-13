@@ -2,3 +2,8 @@ __pycache__/
 .env
 .venv/
 env/
+.pytest_cache/
+
+# Test files for connection fix verification
+test_connection_fixes.py
+verify_connection_fixes.py
