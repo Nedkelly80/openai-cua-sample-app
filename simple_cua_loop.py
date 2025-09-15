@@ -1,5 +1,7 @@
 from computers import Computer
-from computers import LocalPlaywrightComputer
+from computers.config import *
+from computers.default import *
+from computers import computers_config
 from utils import create_response, check_blocklisted_url
 
 
@@ -55,7 +57,9 @@ def handle_item(item, computer: Computer):
 
 def main():
     """Run the CUA (Computer Use Assistant) loop, using Local Playwright."""
-    with LocalPlaywrightComputer() as computer:
+    # Use the computers_config to get the LocalPlaywrightBrowser class
+    ComputerClass = computers_config["local-playwright"]
+    with ComputerClass() as computer:
         dimensions = computer.get_dimensions()
         tools = [
             {
