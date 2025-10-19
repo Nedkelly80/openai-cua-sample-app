@@ -113,7 +113,7 @@ python cli.py --show --computer docker
 
 | Computer | Option | Type | Description | Requirements |
 | -------- | ------ | ---- | ----------- | ------------ |
-| `tbd`    | tbd    | tbd  | tbd         | tbd          |
+| `LibmuttComputer` | libmutt | `linux` | Terminal-based mutt email client | [mutt](http://www.mutt.org/) installed, X11 display, xterm, xdotool, imagemagick |
 
 > [!NOTE]  
 > If you've implemented a new computer, please add it to the "Contributed Computers" section of the README.md file. Clearly indicate any auth / signup requirements. See the [Contributing](#contributing) section for more details.
