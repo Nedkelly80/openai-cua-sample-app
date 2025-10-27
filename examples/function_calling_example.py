@@ -1,5 +1,7 @@
 from agent import Agent
-from computers import ScrapybaraBrowser
+from computers.config import *
+from computers.default import *
+from computers import computers_config
 
 tools = [
     {
@@ -23,7 +25,9 @@ tools = [
 
 
 def main():
-    with ScrapybaraBrowser() as computer:
+    # Use the computers_config to get the ScrapybaraBrowser class
+    ComputerClass = computers_config["scrapybara-browser"]
+    with ComputerClass() as computer:
         agent = Agent(tools=tools, computer=computer)
         items = []
         while True:

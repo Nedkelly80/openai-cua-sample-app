@@ -1,5 +1,7 @@
 from agent.agent import Agent
-from computers import LocalPlaywrightComputer
+from computers.config import *
+from computers.default import *
+from computers import computers_config
 
 tools = [
     {
@@ -28,7 +30,9 @@ tools = [
 
 
 def main():
-    with LocalPlaywrightComputer() as computer:
+    # Use the computers_config to get the LocalPlaywrightBrowser class
+    ComputerClass = computers_config["local-playwright"]
+    with ComputerClass() as computer:
         agent = Agent(computer=computer, tools=tools)
         items = [
             {

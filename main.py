@@ -1,9 +1,13 @@
 from agent.agent import Agent
-from computers import LocalPlaywrightBrowser
+from computers.config import *
+from computers.default import *
+from computers import computers_config
 
 
 def main(user_input=None):
-    with LocalPlaywrightBrowser() as computer:
+    # Use the computers_config to get the LocalPlaywrightBrowser class
+    ComputerClass = computers_config["local-playwright"]
+    with ComputerClass() as computer:
         agent = Agent(computer=computer)
         items = []
         while True:
