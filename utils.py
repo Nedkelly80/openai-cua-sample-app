@@ -49,8 +49,13 @@ def sanitize_message(msg: dict) -> dict:
 
 def create_response(**kwargs):
     url = "https://api.openai.com/v1/responses"
+    
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set. Please create a .env file with your OpenAI API key.")
+    
     headers = {
-        "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
@@ -58,10 +63,18 @@ def create_response(**kwargs):
     if openai_org:
         headers["Openai-Organization"] = openai_org
 
-    response = requests.post(url, headers=headers, json=kwargs)
+    try:
+        response = requests.post(url, headers=headers, json=kwargs, timeout=30)
+    except requests.exceptions.RequestException as e:
+        print(f"Network error connecting to OpenAI API: {e}")
+        raise
 
     if response.status_code != 200:
         print(f"Error: {response.status_code} {response.text}")
+        if response.status_code == 401:
+            raise ValueError("Invalid OpenAI API key. Please check your OPENAI_API_KEY in .env file.")
+        elif response.status_code == 429:
+            raise ValueError("OpenAI API rate limit exceeded. Please try again later.")
 
     return response.json()
 
